@@ -86,7 +86,7 @@ from PyQt5.QtWidgets import *
 # =========================================================
 
 APP_NAME = "STREAMLINK PRO ULTRA X"
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
 
 SAMPLE_RATE = 48000
 BLOCKSIZE = 960
@@ -1159,8 +1159,6 @@ class StreamLinkUltra(QWidget):
 
     def mixer_thread(self):
 
-        buffer_size = 0
-
         try:
 
             while self.running:
@@ -1197,12 +1195,15 @@ class StreamLinkUltra(QWidget):
                     # Convert to PCM16
                     pcm = (mixed * 32767).astype(np.int16)
 
-                    # Write to FFmpeg
-                    self.ffmpeg_process.stdin.write(pcm.tobytes())
+                    # Write to FFmpeg stdin with error handling
+                    try:
+                        self.ffmpeg_process.stdin.write(pcm.tobytes())
+                        self.ffmpeg_process.stdin.flush()
+                    except (BrokenPipeError, OSError) as pipe_error:
+                        self.log(f"❌ FFmpeg pipe error: {pipe_error}")
+                        break
 
                     self.frames_processed += len(mixed)
-
-                    buffer_size = self.ffmpeg_process.stdin.buffer_size
 
                     # Calculate latency
                     if self.stream_start_time:
@@ -1210,11 +1211,6 @@ class StreamLinkUltra(QWidget):
                         frames_time = self.frames_processed / SAMPLE_RATE
                         latency_ms = (elapsed - frames_time) * 1000
                         self.signals.latency_signal.emit(max(0, latency_ms))
-
-                except BrokenPipeError:
-
-                    self.log("❌ FFmpeg pipe closed unexpectedly")
-                    break
 
                 except Exception as e:
 
