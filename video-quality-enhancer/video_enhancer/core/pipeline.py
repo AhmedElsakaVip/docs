@@ -1,12 +1,11 @@
-"""
-خط المعالجة - Processing Pipeline
-"""
+""" خط المعالجة - Processing Pipeline """
 
 import cv2
 import numpy as np
 from typing import List, Callable, Dict, Any
 from dataclasses import dataclass
 import logging
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +34,7 @@ class Pipeline:
         self.device = device
         self.stages: List[Stage] = []
     
-    def add_stage(
-        self,
-        stage_name: str,
-        func: Callable = None,
-        **params
-    ) -> 'Pipeline':
+    def add_stage(self, stage_name: str, func: Callable = None, **params) -> 'Pipeline':
         """
         إضافة مرحلة معالجة
         
@@ -117,7 +111,6 @@ class Pipeline:
         )
         
         frame_num = 0
-        from tqdm import tqdm
         
         with tqdm(total=frame_count, desc="معالجة الفيديو") as pbar:
             while True:
@@ -190,7 +183,7 @@ class Pipeline:
     
     @staticmethod
     def _interpolate_fps(frame: np.ndarray, target_fps: int = 60, **kwargs) -> np.ndarray:
-        """تحسين معدل الإطارات"""
+        """تحسين معدل الإطارات (معالجة الإطار)"""
         return frame
     
     @staticmethod

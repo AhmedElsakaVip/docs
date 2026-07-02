@@ -11,6 +11,7 @@ from typing import Optional, Dict, Tuple
 from dataclasses import dataclass
 from tqdm import tqdm
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +168,6 @@ class VideoEnhancer:
         )
         
         frame_num = 0
-        import time
         start_time = time.time()
         
         # معالجة الإطارات
@@ -189,9 +189,6 @@ class VideoEnhancer:
                 
                 frame_num += 1
                 pbar.update(1)
-                
-                if preview and frame_num % 30 == 0:
-                    self._show_preview(frame, enhanced_frame)
         
         cap.release()
         out.release()
@@ -240,7 +237,7 @@ class VideoEnhancer:
                 searchWindowSize=21
             )
         
-        # تكبير الدقة
+        # التحسين الفائق
         height, width = frame.shape[:2]
         new_size = (width * scale_factor, height * scale_factor)
         output = cv2.resize(frame, new_size, interpolation=cv2.INTER_CUBIC)
@@ -282,6 +279,9 @@ class VideoEnhancer:
     
     def _apply_hdr_processing(self, frame: np.ndarray) -> np.ndarray:
         """تطبيق معالجة HDR"""
+        # تطبيق Tone Mapping
+        frame_float = frame.astype(np.float32) / 255.0
+        
         # تطبيق CLAHE
         lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)

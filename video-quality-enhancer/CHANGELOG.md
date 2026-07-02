@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - 🎮 Gaming-optimized video enhancement (PUBG Mobile)
 - 🔧 Super Resolution (4x upscaling)
 - 🎨 Advanced color correction and contrast enhancement
-- 🔇 Intelligent noise reduction
+- 🔍 Intelligent noise reduction
 - ⚡ Frame interpolation capabilities
 - 📊 Video quality analyzer with detailed metrics
 - 🔀 Flexible processing pipeline for custom enhancements

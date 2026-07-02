@@ -6,8 +6,6 @@ import cv2
 import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Optional
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,7 +53,7 @@ class Analyzer:
         تحليل جودة الفيديو
         
         Args:
-            sample_rate: معدل أخذ العينات
+            sample_rate: معدل أخذ العينات (كل كم إطار)
         
         Returns:
             QualityMetrics: مقاييس الجودة
@@ -120,16 +118,24 @@ class Analyzer:
     def _estimate_noise(frame: np.ndarray) -> float:
         """تقدير مستوى الضوضاء"""
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # Laplacian variance
         laplacian = cv2.Laplacian(gray, cv2.CV_64F)
         noise_level = laplacian.var()
+        
         return float(noise_level)
     
     @staticmethod
     def _estimate_edge_quality(frame: np.ndarray) -> float:
         """تقدير جودة الحواف"""
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # Canny edge detection
         edges = cv2.Canny(gray, 100, 200)
+        
+        # النسبة المئوية للبكسلات الحادة
         edge_ratio = np.sum(edges > 0) / edges.size
+        
         return float(edge_ratio * 100)
     
     @staticmethod
@@ -143,11 +149,13 @@ class Analyzer:
         motion_blur: float
     ) -> float:
         """حساب الدرجة الشاملة"""
+        # تطبيع المقاييس (0-100)
         psnr_norm = min(100, (psnr / 50) * 100)
         ssim_norm = ssim * 100
         noise_norm = 100 - min(100, noise * 0.5)
         edge_norm = edge
         
+        # المتوسط المرجح
         score = (
             psnr_norm * 0.25 +
             ssim_norm * 0.25 +
@@ -165,8 +173,8 @@ class Analyzer:
         print("\n" + "="*50)
         print("📊 تقرير جودة الفيديو")
         print("="*50)
-        print(f"PSNR: {metrics.psnr:.2f} dB")
-        print(f"SSIM: {metrics.ssim:.4f}")
+        print(f"PSNR (Peak Signal-to-Noise): {metrics.psnr:.2f} dB")
+        print(f"SSIM (Structural Similarity): {metrics.ssim:.4f}")
         print(f"مستوى الضوضاء: {metrics.noise_level:.2f}")
         print(f"جودة الحواف: {metrics.edge_quality:.2f}%")
         print(f"دقة الألوان: {metrics.color_accuracy:.2f}%")
